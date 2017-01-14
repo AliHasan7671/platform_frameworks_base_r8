@@ -51,6 +51,13 @@ public class PhoneStatusBarView extends FrameLayout {
     private static final String TAG = "PhoneStatusBarView";
     private final StatusBarWindowController mStatusBarWindowController;
 
+    private int mBasePaddingBottom;
+    private int mBasePaddingLeft;
+    private int mBasePaddingRight;
+    private int mBasePaddingTop;
+
+    private ViewGroup mStatusBarContents;
+
     private int mRotationOrientation = -1;
     @Nullable
     private View mCutoutSpace;
@@ -97,10 +104,30 @@ public class PhoneStatusBarView extends FrameLayout {
         StatusBarUserChipViewBinder.bind(container, viewModel);
     }
 
+    public void shiftStatusBarItems(int horizontalShift, int verticalShift) {
+        if (mStatusBarContents == null) {
+            return;
+        }
+
+        mStatusBarContents.setPaddingRelative(
+            mBasePaddingLeft + horizontalShift,
+            mBasePaddingTop + verticalShift,
+            mBasePaddingRight + horizontalShift,
+            mBasePaddingBottom - verticalShift
+        );
+        invalidate();
+    }
+
     @Override
     public void onFinishInflate() {
         super.onFinishInflate();
         mCutoutSpace = findViewById(R.id.cutout_space_view);
+        mStatusBarContents = (ViewGroup) findViewById(R.id.status_bar_contents);
+
+        mBasePaddingLeft = mStatusBarContents.getPaddingStart();
+        mBasePaddingTop = mStatusBarContents.getPaddingTop();
+        mBasePaddingRight = mStatusBarContents.getPaddingEnd();
+        mBasePaddingBottom = mStatusBarContents.getPaddingBottom();
 
         updateResources();
     }
