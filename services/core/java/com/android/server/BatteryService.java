@@ -62,6 +62,7 @@ import android.os.UserHandle;
 import android.provider.Settings;
 import android.service.battery.BatteryServiceDumpProto;
 import android.sysprop.PowerProperties;
+import android.text.TextUtils;
 import android.util.EventLog;
 import android.util.Slog;
 import android.util.proto.ProtoOutputStream;
@@ -186,6 +187,9 @@ public final class BatteryService extends SystemService {
     private int mLastPlugType = -1; // Extra state so we can detect first run
 
     private boolean mBatteryLevelLow;
+
+    private boolean mOemFastCharger;
+    private boolean mLastOemFastCharger;
 
     private long mDischargeStartTime;
     private int mDischargeStartLevel;
@@ -592,6 +596,8 @@ public final class BatteryService extends SystemService {
         shutdownIfNoPowerLocked();
         shutdownIfOverTempLocked();
 
+        mOemFastCharger = isOemFastCharger();
+
         if (force || mHealthInfo.chargingPolicy != mLastChargingPolicy) {
             mLastChargingPolicy = mHealthInfo.chargingPolicy;
             mHandler.post(this::notifyChargingPolicyChanged);
@@ -611,7 +617,8 @@ public final class BatteryService extends SystemService {
                         || mInvalidCharger != mLastInvalidCharger
                         || mHealthInfo.batteryCycleCount != mLastBatteryCycleCount
                         || mHealthInfo.chargingState != mLastChargingState
-                        || mHealthInfo.batteryCapacityLevel != mLastBatteryCapacityLevel)) {
+                        || mHealthInfo.batteryCapacityLevel != mLastBatteryCapacityLevel
+                        || mOemFastCharger != mLastOemFastCharger)) {
 
             if (mPlugType != mLastPlugType) {
                 if (mLastPlugType == BATTERY_PLUGGED_NONE) {
@@ -832,6 +839,7 @@ public final class BatteryService extends SystemService {
             mLastBatteryCycleCount = mHealthInfo.batteryCycleCount;
             mLastChargingState = mHealthInfo.chargingState;
             mLastBatteryCapacityLevel = mHealthInfo.batteryCapacityLevel;
+            mLastOemFastCharger = mOemFastCharger;
         }
     }
 
@@ -866,9 +874,13 @@ public final class BatteryService extends SystemService {
         intent.putExtra(BatteryManager.EXTRA_CYCLE_COUNT, mHealthInfo.batteryCycleCount);
         intent.putExtra(BatteryManager.EXTRA_CHARGING_STATUS, mHealthInfo.chargingState);
         intent.putExtra(BatteryManager.EXTRA_CAPACITY_LEVEL, mHealthInfo.batteryCapacityLevel);
+
+        intent.putExtra(BatteryManager.EXTRA_OEM_FAST_CHARGER, mOemFastCharger);
+
         if (DEBUG) {
             Slog.d(TAG, "Sending ACTION_BATTERY_CHANGED. scale:" + BATTERY_SCALE
-                    + ", info:" + mHealthInfo.toString());
+                    + ", info:" + mHealthInfo.toString()
+                    + ", mOemFastCharger:" + mOemFastCharger);
         }
 
         if (com.android.server.flags.Flags.consolidateBatteryChangeEvents()) {
@@ -1009,6 +1021,25 @@ public final class BatteryService extends SystemService {
                 : mChargingPolicyChangeListeners) {
             listener.onChargingPolicyChanged(newPolicy);
         }
+    }
+
+    private boolean isOemFastCharger() {
+        final String path = mContext.getResources().getString(
+                com.android.internal.R.string.config_oemFastChargerStatusPath);
+
+        if (path.isEmpty())
+            return false;
+
+        final String value = mContext.getResources().getString(
+                com.android.internal.R.string.config_oemFastChargerStatusValue);
+
+        try {
+            return FileUtils.readTextFile(new File(path), value.length(), null).equals(value);
+        } catch (IOException e) {
+            Slog.e(TAG, "Failed to read oem fast charger status path: " + path);
+        }
+
+        return false;
     }
 
     // TODO: Current code doesn't work since "--unplugged" flag in BSS was purposefully removed.
