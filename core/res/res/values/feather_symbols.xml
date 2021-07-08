@@ -29,4 +29,7 @@
     <!-- Whether device implements proximity sensor based checks to prevent
          accidental unlocks when the screen is off. -->
     <java-symbol type="bool" name="config_proximityCheckOnFpsUnlock" />
+
+    <!-- For dynamic default font styles -->
+    <java-symbol type="string" name="config_bodyFontFamily" />
 </resources>
