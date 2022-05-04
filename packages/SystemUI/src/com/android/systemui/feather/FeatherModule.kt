@@ -17,6 +17,7 @@
 package com.android.systemui.feather
 
 import com.android.systemui.qs.tileimpl.QSTileImpl
+import com.android.systemui.qs.tiles.AutoBrightnessTile
 import com.android.systemui.qs.tiles.CaffeineTile
 
 import dagger.Binds
@@ -26,6 +27,12 @@ import dagger.multibindings.StringKey
 
 @Module
 interface FeatherModule {
+    /** Inject AutoBrightnessTile into tileMap in QSModule */
+    @Binds
+    @IntoMap
+    @StringKey(AutoBrightnessTile.TILE_SPEC)
+    fun bindAutoBrightnessTile(autobrightnessTile: AutoBrightnessTile): QSTileImpl<*>
+
     /** Inject CaffeineTile into tileMap in QSModule */
     @Binds
     @IntoMap
