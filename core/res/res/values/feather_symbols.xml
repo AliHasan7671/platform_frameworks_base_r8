@@ -95,4 +95,7 @@
 
     <!-- Default values for status bar DT2S gesture -->
     <java-symbol type="bool" name="config_dt2sGestureEnabledByDefault" />
+
+    <!-- These are system packages exempted from privacy indicator -->
+    <java-symbol type="array" name="config_indicatorExemptedPackageNames" />
 </resources>
