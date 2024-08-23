@@ -99,8 +99,9 @@
     <!-- These are system packages exempted from privacy indicator -->
     <java-symbol type="array" name="config_indicatorExemptedPackageNames" />
 
-    <!-- PropImitationHooks -->
+    <!-- Prop/KeyboxImitationHooks -->
     <java-symbol type="array" name="config_certifiedBuildProperties" />
+    <java-symbol type="array" name="config_certifiedKeybox" />
     <java-symbol type="string" name="config_stockFingerprint" />
     <java-symbol type="string" name="config_netflixSpoofModel" />
     <java-symbol type="bool" name="config_spoofasTablet" />
